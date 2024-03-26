@@ -1,3 +1,5 @@
+#CHANGE names and passwords accordingly
+
 import boto3
 import json
 awsconsole = boto3.session.Session(profile_name="default")
@@ -78,5 +80,5 @@ iamconsole.create_role(
 
 iamconsole.attach_role_policy(
     RoleName="role1",
-    PolicyArn="arn:aws:iam::aws:policy/IAMAccessAnalyzerReadOnlyAccess"
+    PolicyArn="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 )
