@@ -1,5 +1,23 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters":{
+        "User1Name":{
+            "Type": "String",
+            "Description": "User1 Name"
+        },
+        "User1Password":{
+            "Type": "String",
+            "Description": "User1 Password"
+        },
+        "User2Name":{
+            "Type": "String",
+            "Description": "User2 Name"
+        },
+        "User2Password":{
+            "Type": "String",
+            "Description": "User2 Password"
+        }
+    },
     "Resources": {
         "UserGroup1": {
             "Type": "AWS::IAM::Group",
