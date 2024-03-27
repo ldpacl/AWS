@@ -16,6 +16,7 @@ Our projects offer hands-on experience using various AWS services, including:
 ### This repository is a living project, and contributions are welcome!
 
 Feel free to:
+
 •	Submit new projects showcasing different AWS services.
 
 •	Share your unique approaches and best practices.
