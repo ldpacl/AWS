@@ -16,13 +16,17 @@ Our projects offer hands-on experience using various AWS services, including:
 ### This repository is a living project, and contributions are welcome!
 
 Feel free to:
-•	Submit new projects showcasing different AWS services. ➕
+•	Submit new projects showcasing different AWS services.
+
 •	Share your unique approaches and best practices.
+
 •	Help expand this knowledge base for the entire AWS community.
 
 ### Ready to embark on your AWS journey?
 •	Clone this repository and start exploring! ⬇️
+
 •	Check out the project folders and accompanying documentation.
+
 •	Feel free to reach out with any questions or suggestions.
 
 # Let's build something amazing together!
