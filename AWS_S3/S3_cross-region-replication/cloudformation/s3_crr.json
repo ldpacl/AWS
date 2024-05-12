@@ -1,0 +1,130 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters":{
+        "SourceBucket":{
+            "Type":"String"
+        }
+    },
+    "Resources": {
+        "ReplicationRole":{
+            "Type":"AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "s3.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "ReplicationPolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:GetObjectVersionForReplication",
+                                        "s3:GetObjectVersionAcl",
+                                        "s3:GetObjectVersionTagging"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:s3:::",
+                                                {
+                                                    "Ref": "SourceBucket"
+                                                },
+                                                "/*"
+                                            ]
+                                        ]
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:ListBucket",
+                                        "s3:GetReplicationConfiguration"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:s3:::",
+                                                {
+                                                    "Ref": "SourceBucket"
+                                                }
+                                            ]
+                                        ]
+                                    }
+                                },
+                                {
+                                    "Effect":"Allow",
+                                    "Action":[
+                                        "s3:ReplicateObject",
+                                        "s3:ReplicateDelete",
+                                        "s3:ReplicateTags"
+                                    ],
+                                    "Resource": [
+                                        "arn:aws:s3:::destinationbucketdpac/*"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "Sourcebcket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": {
+                    "Ref": "SourceBucket"
+                },
+                "AccessControl": "Private",
+                "VersioningConfiguration": {
+                    "Status": "Enabled"
+                },
+                "PublicAccessBlockConfiguration":
+                {
+                    "BlockPublicAcls": true,
+                    "IgnorePublicAcls": true,
+                    "BlockPublicPolicy": true,
+                    "RestrictPublicBuckets": true
+                },
+                "ReplicationConfiguration": {
+                    "Role": {
+                        "Fn::GetAtt": [
+                            "ReplicationRole",
+                            "Arn"
+                        ]
+                    },
+                    "Rules": [
+                        {
+                            "Id": "ReplicationRule",
+                            "Status": "Enabled",
+                            "Priority": 1,
+                            "DeleteMarkerReplication": {
+                                "Status": "Disabled"
+                            },
+                            "Filter": {
+                                "Prefix": ""
+                            },
+                            "Destination": {
+                                "Bucket": "arn:aws:s3:::destinationbucketdpac",
+                                "StorageClass": "STANDARD"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
