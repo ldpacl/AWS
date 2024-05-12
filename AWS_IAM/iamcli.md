@@ -53,5 +53,3 @@ aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonEC2fullac
 ```
 ### Attach IAM readonlyaccess policy to that role:
 ```aws iam attach-role-policy –policy-arn arn:aws:iam::aws:policy/IAMAccessAnalyzerReadOnlyAccess –role-name role1```
-
-
