@@ -73,7 +73,7 @@
                                         "s3:ReplicateTags"
                                     ],
                                     "Resource": [
-                                        "arn:aws:s3:::destinationbucketdpac/*"
+                                        "arn:aws:s3:::destinationbucket/*"
                                     ]
                                 }
                             ]
@@ -118,7 +118,7 @@
                                 "Prefix": ""
                             },
                             "Destination": {
-                                "Bucket": "arn:aws:s3:::destinationbucketdpac",
+                                "Bucket": "arn:aws:s3:::destinationbucket",
                                 "StorageClass": "STANDARD"
                             }
                         }
