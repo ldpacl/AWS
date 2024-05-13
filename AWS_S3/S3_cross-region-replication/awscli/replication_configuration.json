@@ -1,0 +1,20 @@
+{
+    "Role": "arn:aws:iam::123456789012:role/replication-role",
+    "Rules": [
+        {
+            "ID": "rule1",
+            "Status": "Enabled",
+            "Priority": 1,
+            "Filter": {
+                "Prefix": ""
+            },
+            "Destination": {
+                "Bucket": "arn:aws:s3:::destination-bucket",
+                "StorageClass": "STANDARD"
+            },
+            "DeleteMarkerReplication": {
+                "Status": "Disabled"
+            }
+        }
+    ]
+}
