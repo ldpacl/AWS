@@ -1,0 +1,188 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation Template for creating server access logging in s3",
+    "Parameters": {
+        "HostingBucket1Name": {
+            "Description": "Host bucket 1 name",
+            "Type": "String"
+        },
+        "HostingBucket2Name": {
+            "Description": "Host bucket 2 name",
+            "Type": "String"
+        },
+        "LogBucketName": {
+            "Description": "Log bucket name",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "HostingBucket1": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": {
+                    "Ref": "HostingBucket1Name"
+                },
+                "OwnershipControls": {
+                    "Rules": [
+                        {
+                            "ObjectOwnership": "BucketOwnerPreferred"
+                        }
+                    ]
+                },
+                "PublicAccessBlockConfiguration": {
+                    "BlockPublicAcls": false,
+                    "BlockPublicPolicy": false,
+                    "IgnorePublicAcls": false,
+                    "RestrictPublicBuckets": false
+                },
+                "VersioningConfiguration": {
+                    "Status": "Enabled"
+                },
+                "WebsiteConfiguration": {
+                    "IndexDocument": "index.html"
+                },
+                "LoggingConfiguration": {
+                    "DestinationBucketName": {
+                        "Ref": "LogBucketName"
+                    },
+                    "LogFilePrefix": { "Fn::Join": ["", ["logs/", { "Ref": "HostingBucket1Name" }, "/"]] }
+                }
+            }
+        },
+        "HostingBucket1Policy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+                "Bucket": {
+                    "Ref": "HostingBucket1"
+                },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": "*",
+                            "Action": "s3:GetObject",
+                            "Resource": { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "HostingBucket1Name" }, "/*"]] }
+                        }
+                    ]
+                }
+            }
+        },
+        "HostingBucket2": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": {
+                    "Ref": "HostingBucket2Name"
+                },
+                "OwnershipControls": {
+                    "Rules": [
+                        {
+                            "ObjectOwnership": "BucketOwnerPreferred"
+                        }
+                    ]
+                },
+                "PublicAccessBlockConfiguration": {
+                    "BlockPublicAcls": false,
+                    "BlockPublicPolicy": false,
+                    "IgnorePublicAcls": false,
+                    "RestrictPublicBuckets": false
+                },
+                "VersioningConfiguration": {
+                    "Status": "Enabled"
+                },
+                "WebsiteConfiguration": {
+                    "IndexDocument": "index.html"
+                },
+                "LoggingConfiguration": {
+                    "DestinationBucketName": {
+                        "Ref": "LogBucketName"
+                    },
+                    "LogFilePrefix": { "Fn::Join": ["", ["logs/", { "Ref": "HostingBucket2Name" }, "/"]] }
+                }
+            }
+        },
+        "HostingBucket2Policy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+                "Bucket": {
+                    "Ref": "HostingBucket2"
+                },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": "*",
+                            "Action": "s3:GetObject",
+                            "Resource": { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "HostingBucket2Name" }, "/*"]] }
+                        }
+                    ]
+                }
+            }
+        },
+        "LoggingBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": {
+                    "Ref": "LogBucketName"
+                },
+                "OwnershipControls": {
+                    "Rules": [
+                        {
+                            "ObjectOwnership": "BucketOwnerPreferred"
+                        }
+                    ]
+                },
+                "PublicAccessBlockConfiguration": {
+                    "BlockPublicAcls": true,
+                    "BlockPublicPolicy": true,
+                    "IgnorePublicAcls": true,
+                    "RestrictPublicBuckets": true
+                }
+            }
+        },
+        "LoggingBucketPolicy":{
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+                "Bucket": { "Ref": "LoggingBucket" },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "logging.s3.amazonaws.com"
+                            },
+                            "Action": "s3:PutObject",
+                            "Resource": { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "LogBucketName" }, "/logs/", { "Ref": "HostingBucket1Name"}, "/*"]] },
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:SourceAccount": { "Ref": "AWS::AccountId" }
+                                },
+                                "ArnLike": {
+                                    "aws:SourceArn": { "Fn::GetAtt": ["HostingBucket1", "Arn"] }
+                                }   
+                            }
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "logging.s3.amazonaws.com"
+                            },
+                            "Action": "s3:PutObject",
+                            "Resource": { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "LogBucketName" }, "/logs/", { "Ref": "HostingBucket2Name"}, "/*"]] },
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:SourceAccount": { "Ref": "AWS::AccountId" }
+                                },
+                                "ArnLike": {
+                                    "aws:SourceArn": { "Fn::GetAtt": ["HostingBucket2", "Arn"] }
+                                }   
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
