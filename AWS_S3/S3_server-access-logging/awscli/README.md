@@ -20,9 +20,13 @@
 ### Follow the same steps as above using the following commands
 
 ``` aws s3api create-bucket --bucket hostingbucket2dpac```
+
 ``` aws s3api put-public-access-block --bucket hostingbucket2 --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"```
+
 ``` aws s3api put-bucket-versioning --bucket hostingbucket2 --versioning-configuration Status=Enabled```
+
 ``` aws s3api put-bucket-website --bucket hostingbucket2 --website-configuration '{"IndexDocument": {"Suffix": "index.html"}}'```
+
 ``` aws s3api put-bucket-policy --bucket hostingbucket2 --policy file://host2-policy.json```
 
 # Step 3: Create a private S3 bucket in the current region to be used as the logging bucket. Use a unique name for the bucket in the given command
