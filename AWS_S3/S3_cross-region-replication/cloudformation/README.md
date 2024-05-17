@@ -1,0 +1,1 @@
+### Run a cloudformation stack with s3_crr2.json to create the destination bucket first and then create cloudformation stack with s3_crr.json
