@@ -4,6 +4,6 @@ public-subnet-cidr = "10.0.0.0/24"
 public-subnet-az = "ap-south-1a" #Can choose any AZ
 private-subnet-cidr = "10.0.1.0/24" 
 private-subnet-az = "ap-south-1a"
-ami = "ami-007020fd9c84e18c7" #The AMI id changes for different regions
+ami = "your-ami" #The AMI id changes for different regions
 instance-type = "t2.micro"
 key-name = "key-pair" #Give your key-pair that is already there, create one if it does not exist
