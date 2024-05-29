@@ -46,12 +46,8 @@
         "PublicSubnet": {
             "Type": "AWS::EC2::Subnet",
             "Properties": {
-                "VpcId": {
-                    "Ref": "VPC"
-                },
-                "CidrBlock": {
-                    "Ref": "PublicSubnetCIDR"
-                },
+                "VpcId": {"Ref": "VPC"},
+                "CidrBlock": {"Ref": "PublicSubnetCIDR"},
                 "AvailabilityZone": {
                     "Fn::Select": [
                         "0",
@@ -74,12 +70,8 @@
         "PrivateSubnet": {
             "Type": "AWS::EC2::Subnet",
             "Properties": {
-                "VpcId": {
-                    "Ref": "VPC"
-                },
-                "CidrBlock": {
-                    "Ref": "PrivateSubnetCIDR"
-                },
+                "VpcId": {"Ref": "VPC"},
+                "CidrBlock": {"Ref": "PrivateSubnetCIDR"},
                 "AvailabilityZone": {
                     "Fn::Select": [
                         "1",
@@ -104,12 +96,8 @@
         "AttachGateway": {
             "Type": "AWS::EC2::VPCGatewayAttachment",
             "Properties": {
-                "VpcId": {
-                    "Ref": "VPC"
-                },
-                "InternetGatewayId": {
-                    "Ref": "InternetGateway"
-                }
+                "VpcId": {"Ref": "VPC"},
+                "InternetGatewayId": {"Ref": "InternetGateway"}
             }
         },
         "NATGatewayEIP": {
@@ -126,6 +114,7 @@
                 },
                 "SubnetId": {
                     "Ref": "PublicSubnet"
+                }
             }
         },
         "PublicRouteTable": {
@@ -174,7 +163,7 @@
                 "RouteTableId": {
                     "Ref": "PrivateRouteTable"
                 },
-                "DestinationCidrBlock": "0.0.0.0/0"y,
+                "DestinationCidrBlock": "0.0.0.0/0",
                 "NatGatewayId": {
                     "Ref": "NATGateway"
                 }
@@ -333,4 +322,4 @@
             }
         }
     }
-}
+}  
