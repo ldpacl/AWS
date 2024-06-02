@@ -169,13 +169,13 @@ try:
     )
 
     s3.put_bucket_logging(
-    Bucket= host_bucket_2,
-    BucketLoggingStatus={
-        'LoggingEnabled': {
-            'TargetBucket': log_bucket,
-            'TargetPrefix': f"logs/{host_bucket_2}/"
+        Bucket= host_bucket_2,
+        BucketLoggingStatus={
+            'LoggingEnabled': {
+                'TargetBucket': log_bucket,
+                'TargetPrefix': f"logs/{host_bucket_2}/"
+            }
         }
-    }
     )
 
 except Exception as e:
