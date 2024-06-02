@@ -1,0 +1,380 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "vpc1CIDR": {
+            "Type": "String",
+            "Description": "CIDR block for the VPC1"
+        },
+        "subnet1CIDR": {
+            "Type": "String",
+            "Description": "CIDR block for the subnet1"
+        },
+        "vpc2CIDR": {
+            "Type": "String",
+            "Description": "CIDR block for the VPC2"
+        },
+        "subnet2CIDR": {
+            "Type": "String",
+            "Description": "CIDR block for the subnet2"
+        },
+        "ImageId": {
+            "Type": "String",
+            "Description": "Image ID for the instance"
+        },
+        "KeyName": {
+            "Type": "String",
+            "Description": "Name of the key pair"
+        },
+        "InstanceType": {
+            "Type": "String",
+            "Description": "Instance type"
+        }
+    },
+    "Resources": {
+        "VPC1": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "vpc1CIDR"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "VPC1"
+                    }
+                ]
+            }
+        },
+        "VPC2": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "vpc2CIDR"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "VPC2"
+                    }
+                ]
+            }
+        },
+        "Subnet1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC1"
+                },
+                "CidrBlock": {
+                    "Ref": "subnet1CIDR"
+                },
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "MapPublicIpOnLaunch": "true",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Subnet1"
+                    }
+                ]
+            }
+        },
+        "Subnet2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC2"
+                },
+                "CidrBlock": {
+                    "Ref": "subnet2CIDR"
+                },
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Fn::GetAZs": {
+                                "Ref": "AWS::Region"
+                            }
+                        }
+                    ]
+                },
+                "MapPublicIpOnLaunch": "false",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Subnet2"
+                    }
+                ]
+            }
+        },
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "igw"
+                    }
+                ]
+            }
+        },
+        "AttachGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC1"
+                },
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "vpcPeeringConnection": {
+            "Type": "AWS::EC2::VPCPeeringConnection",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC1"
+                },
+                "PeerVpcId": {
+                    "Ref": "VPC2"
+                }
+            }
+        },
+        "RouteTable1": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC1"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "RouteTable1"
+                    }
+                ]
+            }
+        },
+        "Routetoigw": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable1"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "RoutetoVPC2": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable1"
+                },
+                "DestinationCidrBlock": {
+                    "Ref": "vpc2CIDR"
+                },
+                "VpcPeeringConnectionId": {
+                    "Ref": "vpcPeeringConnection"
+                }
+            }
+        },
+        "SubnetRouteTableAssociation1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "Subnet1"
+                },
+                "RouteTableId": {
+                    "Ref": "RouteTable1"
+                }
+            }
+        },
+        "RouteTable2": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC2"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "RouteTable2"
+                    }
+                ]
+            }
+        },
+        "RoutetoVPC1": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable2"
+                },
+                "DestinationCidrBlock": {
+                    "Ref": "vpc1CIDR"
+                },
+                "VpcPeeringConnectionId": {
+                    "Ref": "vpcPeeringConnection"
+                }
+            }
+        },
+        "SubnetRouteTableAssociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "Subnet2"
+                },
+                "RouteTableId": {
+                    "Ref": "RouteTable2"
+                }
+            }
+        },
+        "SecurityGroup1": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Enable SSH access via port 22",
+                "VpcId": {
+                    "Ref": "VPC1"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "22",
+                        "ToPort": "22",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "0",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            }
+        },
+        "SecurityGroup2": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Enable SSH access via port 22",
+                "VpcId": {
+                    "Ref": "VPC2"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "22",
+                        "ToPort": "22",
+                        "CidrIp": {"Ref": "vpc1CIDR"}
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "0",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            }
+        },
+        "Server1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Ref": "ImageId"
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "DeleteOnTermination": "true",
+                        "SubnetId": {
+                            "Ref": "Subnet1"
+                        },
+                        "GroupSet": [
+                            {
+                                "Ref": "SecurityGroup1"
+                            }
+                        ]
+                    }
+                ],
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeSize": "8",
+                            "VolumeType": "gp2"
+                        }
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Server1"
+                    }
+                ]
+            }
+        },
+        "Server2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Ref": "ImageId"
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "false",
+                        "DeviceIndex": "0",
+                        "DeleteOnTermination": "true",
+                        "SubnetId": {
+                            "Ref": "Subnet2"
+                        },
+                        "GroupSet": [
+                            {
+                                "Ref": "SecurityGroup2"
+                            }
+                        ]
+                    }
+                ],
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeSize": "8",
+                            "VolumeType": "gp2"
+                        }
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Server2"
+                    }
+                ]
+            }
+        }
+    }
+}

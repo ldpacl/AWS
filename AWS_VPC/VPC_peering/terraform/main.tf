@@ -126,7 +126,7 @@ resource "aws_security_group" "peering-sg-1" {
   }
 
   tags = {
-    Name = "peering-sg"
+    Name = "peering-sg1"
   }
 }
 
@@ -139,7 +139,7 @@ resource "aws_security_group" "peering-sg-2" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [aws_vpc.vpc-1.cidr_block]
   }
 
   egress {
@@ -150,7 +150,7 @@ resource "aws_security_group" "peering-sg-2" {
   }
 
   tags = {
-    Name = "peering-sg"
+    Name = "peering-sg2"
   }
 }
 
