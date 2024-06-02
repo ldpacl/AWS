@@ -37,9 +37,10 @@
 ### Create a public security group:
 ```aws ec2 create-security-group --group-name public-sg --description "Public Security Group" --vpc-id <vpc_id>```
 
-### Authorize ingress and egress rules for the public security group:
+### Authorize ingress rules for the public security group:
 ```aws ec2 authorize-security-group-ingress --group-id <public_sg_id> --protocol tcp --port 80 --cidr 0.0.0.0/0```
-```aws ec2 authorize-security-group-ingress --group-id <public_sg_id> --protocol tcp --port 22 --cidr 0.0.0.0/0``
+
+```aws ec2 authorize-security-group-ingress --group-id <public_sg_id> --protocol tcp --port 22 --cidr 0.0.0.0/0```
 
 ### Create a private security group:
 ```aws ec2 create-security-group --group-name private-sg --description "Private Security Group" --vpc-id <vpc_id>```
