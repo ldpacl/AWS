@@ -1,1 +1,2 @@
+# SCENARIO
 ### Create two hosting buckets that can host a static website and are accessible to the public. Configure logging for these buckets to store logs in two different folders within a private logging bucket.
