@@ -16,7 +16,7 @@
 
 ## Architecture Overview
 
-![S3 Cross-Region Replication Architecture](generated-diagrams/s3_cross_region_replication_architecture.png)
+![S3 Cross-Region Replication Architecture](diagrams/s3_cross_region_replication_architecture.png)
 
 ## What This Solution Implements
 
