@@ -16,7 +16,7 @@
 
 ## Architecture Overview
 
-![S3 Server Access Logging Architecture](../../../generated-diagrams/s3_server_access_logging_architecture.png)
+![S3 Server Access Logging Architecture](diagrams/s3_server_access_logging_architecture.png)
 
 This project creates a secure logging infrastructure with the following components:
 
