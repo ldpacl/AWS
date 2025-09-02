@@ -1,25 +1,17 @@
-# AWS CLI IAM Setup Guide
+# Secure AWS CLI IAM Setup Guide
 
 ## Prerequisites
 
-1. **Install AWS CLI**
+1. **Install AWS CLI v2**
    ```bash
-   # For Linux/macOS
    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
    unzip awscliv2.zip
    sudo ./aws/install
-   
-   # For Windows
-   # Download and run: https://awscli.amazonaws.com/AWSCLIV2.msi
    ```
 
 2. **Configure AWS CLI**
    ```bash
    aws configure
-   # Enter your AWS Access Key ID
-   # Enter your AWS Secret Access Key
-   # Enter your default region (e.g., us-east-1)
-   # Enter output format (json)
    ```
 
 3. **Verify Configuration**
@@ -27,145 +19,160 @@
    aws sts get-caller-identity
    ```
 
-## Step 1: Create IAM Users
-
-Create two users for the e-commerce platform team:
+## Step 1: Create IAM Groups
 
 ```bash
-# Create Database Administrator user
-aws iam create-user --user-name sarah-db-admin
-
-# Create DevOps Engineer user
-aws iam create-user --user-name mike-devops
-```
-
-## Step 2: Set User Passwords
-
-1. **Generate login profile template:**
-   ```bash
-   aws iam create-login-profile --generate-cli-skeleton > create-login-profile.json
-   ```
-
-2. **Edit the JSON file:**
-   ```json
-   {
-       "UserName": "sarah-db-admin",
-       "Password": "TempPassword123!",
-       "PasswordResetRequired": true
-   }
-   ```
-
-3. **Create login profiles:**
-   ```bash
-   # For Database Administrator
-   aws iam create-login-profile --cli-input-json file://create-login-profile.json
-   
-   # Update JSON file for DevOps user and run again
-   aws iam create-login-profile --cli-input-json file://create-login-profile.json
-   ```
-
-## Step 3: Create IAM Groups
-
-```bash
-# Create groups for different access levels
+# Create groups with descriptive names
+aws iam create-group --group-name RDSAccess
 aws iam create-group --group-name EC2FullAccess
 aws iam create-group --group-name S3FullAccess
 ```
 
-## Step 4: Attach Policies to Groups
+## Step 2: Attach Policies to Groups
 
 ```bash
-# Attach EC2 full access to group
+# Attach policies to groups (not users directly)
+aws iam attach-group-policy \
+    --policy-arn arn:aws:iam::aws:policy/AmazonRDSFullAccess \
+    --group-name RDSAccess
+
 aws iam attach-group-policy \
     --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess \
     --group-name EC2FullAccess
 
-# Attach S3 full access to group
 aws iam attach-group-policy \
     --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess \
     --group-name S3FullAccess
 ```
 
-## Step 5: Assign Direct User Permissions
+## Step 3: Create Service Users (No Console Access)
 
 ```bash
-# Give Database Administrator direct RDS access
-aws iam attach-user-policy \
-    --policy-arn arn:aws:iam::aws:policy/AmazonRDSFullAccess \
-    --user-name sarah-db-admin
+# Create service users with tags
+aws iam create-user \
+    --user-name service-user-1 \
+    --tags Key=Purpose,Value=ServiceAccount Key=Environment,Value=Development
+
+aws iam create-user \
+    --user-name service-user-2 \
+    --tags Key=Purpose,Value=ServiceAccount Key=Environment,Value=Development
 ```
 
-## Step 6: Add Users to Groups
+## Step 4: Create Access Keys for Programmatic Access
 
 ```bash
-# Add Database Administrator to EC2 group (for connectivity troubleshooting)
-aws iam add-user-to-group --group-name EC2FullAccess --user-name sarah-db-admin
-
-# Add DevOps Engineer to S3 group
-aws iam add-user-to-group --group-name S3FullAccess --user-name mike-devops
+# Create access keys (store securely!)
+aws iam create-access-key --user-name service-user-1
+aws iam create-access-key --user-name service-user-2
 ```
 
-## Step 7: Create EC2 Service Role
+## Step 5: Add Users to Groups
 
-1. **Create trust policy file:**
-   ```bash
-   cat > trust-policy.json << EOF
-   {
-       "Version": "2012-10-17",
-       "Statement": [
-           {
-               "Effect": "Allow",
-               "Principal": {
-                   "Service": "ec2.amazonaws.com"
-               },
-               "Action": "sts:AssumeRole"
-           }
-       ]
-   }
-   EOF
-   ```
+```bash
+# Add users to appropriate groups
+aws iam add-user-to-group --group-name RDSAccess --user-name service-user-1
+aws iam add-user-to-group --group-name EC2FullAccess --user-name service-user-1
+aws iam add-user-to-group --group-name S3FullAccess --user-name service-user-2
+```
 
-2. **Create the role:**
-   ```bash
-   aws iam create-role \
-       --role-name EC2-S3-ReadOnly-Role \
-       --assume-role-policy-document file://trust-policy.json
-   ```
+## Step 6: Create EC2 Service Role
 
-3. **Attach S3 read-only policy:**
-   ```bash
-   aws iam attach-role-policy \
-       --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess \
-       --role-name EC2-S3-ReadOnly-Role
-   ```
+```bash
+# Create trust policy file
+cat > trust-policy.json << EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {"Service": "ec2.amazonaws.com"},
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+EOF
+
+# Create role with tags
+aws iam create-role \
+    --role-name EC2S3ReadOnlyRole \
+    --assume-role-policy-document file://trust-policy.json \
+    --tags Key=Purpose,Value=EC2ServiceRole Key=Environment,Value=Development
+
+# Attach policy to role
+aws iam attach-role-policy \
+    --role-name EC2S3ReadOnlyRole \
+    --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+# Create instance profile
+aws iam create-instance-profile --instance-profile-name EC2S3ReadOnlyProfile
+aws iam add-role-to-instance-profile \
+    --instance-profile-name EC2S3ReadOnlyProfile \
+    --role-name EC2S3ReadOnlyRole
+
+# Clean up
+rm trust-policy.json
+```
 
 ## Verification Commands
 
 ```bash
-# List all users
-aws iam list-users
+# List service users
+aws iam list-users --query 'Users[?contains(Tags[?Key==`Purpose`].Value, `ServiceAccount`)].UserName'
 
-# List all groups
+# List groups and their policies
 aws iam list-groups
+aws iam list-attached-group-policies --group-name RDSAccess
 
-# List all roles
-aws iam list-roles
+# Check user group memberships
+aws iam get-groups-for-user --user-name service-user-1
 
-# Check user's attached policies
-aws iam list-attached-user-policies --user-name sarah-db-admin
-
-# Check group memberships
-aws iam get-groups-for-user --user-name sarah-db-admin
+# List roles
+aws iam list-roles --query 'Roles[?RoleName==`EC2S3ReadOnlyRole`].RoleName'
 ```
 
-## Cleanup (Optional)
+## Cleanup Commands
 
 ```bash
-# Detach policies and delete resources
-aws iam detach-user-policy --user-name sarah-db-admin --policy-arn arn:aws:iam::aws:policy/AmazonRDSFullAccess
-aws iam remove-user-from-group --group-name EC2FullAccess --user-name sarah-db-admin
-aws iam delete-login-profile --user-name sarah-db-admin
-aws iam delete-user --user-name sarah-db-admin
+# Remove users from groups
+aws iam remove-user-from-group --group-name RDSAccess --user-name service-user-1
+aws iam remove-user-from-group --group-name EC2FullAccess --user-name service-user-1
+aws iam remove-user-from-group --group-name S3FullAccess --user-name service-user-2
 
-# Repeat for other resources...
+# Delete access keys (list first to get key IDs)
+aws iam list-access-keys --user-name service-user-1
+aws iam delete-access-key --user-name service-user-1 --access-key-id <ACCESS_KEY_ID>
+aws iam list-access-keys --user-name service-user-2
+aws iam delete-access-key --user-name service-user-2 --access-key-id <ACCESS_KEY_ID>
+
+# Delete users
+aws iam delete-user --user-name service-user-1
+aws iam delete-user --user-name service-user-2
+
+# Detach policies and delete groups
+aws iam detach-group-policy --group-name RDSAccess --policy-arn arn:aws:iam::aws:policy/AmazonRDSFullAccess
+aws iam detach-group-policy --group-name EC2FullAccess --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess
+aws iam detach-group-policy --group-name S3FullAccess --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+aws iam delete-group --group-name RDSAccess
+aws iam delete-group --group-name EC2FullAccess
+aws iam delete-group --group-name S3FullAccess
+
+# Clean up role and instance profile
+aws iam remove-role-from-instance-profile --instance-profile-name EC2S3ReadOnlyProfile --role-name EC2S3ReadOnlyRole
+aws iam delete-instance-profile --instance-profile-name EC2S3ReadOnlyProfile
+aws iam detach-role-policy --role-name EC2S3ReadOnlyRole --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+aws iam delete-role --role-name EC2S3ReadOnlyRole
 ```
+
+## Security Best Practices
+
+✅ **What This Guide Does Right:**
+- Creates service accounts (no console access)
+- Uses group-based permissions
+- Applies resource tagging
+- Provides proper cleanup procedures
+
+❌ **Avoid These Common Mistakes:**
+- Creating login profiles for service accounts
+- Attaching policies directly to users
+- Using hardcoded passwords
+- Skipping resource cleanup

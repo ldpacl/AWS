@@ -1,0 +1,149 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Secure IAM resources following AWS best practices",
+  "Parameters": {
+    "User1Name": {
+      "Type": "String",
+      "Description": "Name for service user 1",
+      "MinLength": 1,
+      "MaxLength": 64,
+      "AllowedPattern": "^[a-zA-Z0-9+=,.@_-]+$"
+    },
+    "User2Name": {
+      "Type": "String", 
+      "Description": "Name for service user 2",
+      "MinLength": 1,
+      "MaxLength": 64,
+      "AllowedPattern": "^[a-zA-Z0-9+=,.@_-]+$"
+    },
+    "Environment": {
+      "Type": "String",
+      "Default": "Development",
+      "AllowedValues": ["Development", "Staging", "Production"],
+      "Description": "Environment for resource tagging"
+    }
+  },
+  "Resources": {
+    "RDSAccessGroup": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+        "GroupName": "RDSAccess",
+        "ManagedPolicyArns": ["arn:aws:iam::aws:policy/AmazonRDSFullAccess"]
+      }
+    },
+    "EC2AccessGroup": {
+      "Type": "AWS::IAM::Group", 
+      "Properties": {
+        "GroupName": "EC2FullAccess",
+        "ManagedPolicyArns": ["arn:aws:iam::aws:policy/AmazonEC2FullAccess"]
+      }
+    },
+    "S3AccessGroup": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+        "GroupName": "S3FullAccess", 
+        "ManagedPolicyArns": ["arn:aws:iam::aws:policy/AmazonS3FullAccess"]
+      }
+    },
+    "ServiceUser1": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "UserName": {"Ref": "User1Name"},
+        "Groups": [{"Ref": "RDSAccessGroup"}, {"Ref": "EC2AccessGroup"}],
+        "Tags": [
+          {"Key": "Purpose", "Value": "ServiceAccount"},
+          {"Key": "Environment", "Value": {"Ref": "Environment"}},
+          {"Key": "CreatedBy", "Value": "CloudFormation"}
+        ]
+      }
+    },
+    "ServiceUser2": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "UserName": {"Ref": "User2Name"},
+        "Groups": [{"Ref": "S3AccessGroup"}],
+        "Tags": [
+          {"Key": "Purpose", "Value": "ServiceAccount"},
+          {"Key": "Environment", "Value": {"Ref": "Environment"}},
+          {"Key": "CreatedBy", "Value": "CloudFormation"}
+        ]
+      }
+    },
+    "User1AccessKey": {
+      "Type": "AWS::IAM::AccessKey",
+      "Properties": {
+        "UserName": {"Ref": "ServiceUser1"}
+      }
+    },
+    "User2AccessKey": {
+      "Type": "AWS::IAM::AccessKey", 
+      "Properties": {
+        "UserName": {"Ref": "ServiceUser2"}
+      }
+    },
+    "EC2ServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "EC2S3ReadOnlyRole",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {"Service": "ec2.amazonaws.com"},
+            "Action": "sts:AssumeRole"
+          }]
+        },
+        "ManagedPolicyArns": ["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"],
+        "Tags": [
+          {"Key": "Purpose", "Value": "EC2ServiceRole"},
+          {"Key": "Environment", "Value": {"Ref": "Environment"}},
+          {"Key": "CreatedBy", "Value": "CloudFormation"}
+        ]
+      }
+    },
+    "EC2InstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "InstanceProfileName": "EC2S3ReadOnlyProfile",
+        "Roles": [{"Ref": "EC2ServiceRole"}]
+      }
+    }
+  },
+  "Outputs": {
+    "User1ARN": {
+      "Description": "ARN of service user 1",
+      "Value": {"Fn::GetAtt": ["ServiceUser1", "Arn"]},
+      "Export": {"Name": {"Fn::Sub": "${AWS::StackName}-User1-ARN"}}
+    },
+    "User2ARN": {
+      "Description": "ARN of service user 2", 
+      "Value": {"Fn::GetAtt": ["ServiceUser2", "Arn"]},
+      "Export": {"Name": {"Fn::Sub": "${AWS::StackName}-User2-ARN"}}
+    },
+    "User1AccessKeyId": {
+      "Description": "Access Key ID for service user 1",
+      "Value": {"Ref": "User1AccessKey"},
+      "Export": {"Name": {"Fn::Sub": "${AWS::StackName}-User1-AccessKeyId"}}
+    },
+    "User2AccessKeyId": {
+      "Description": "Access Key ID for service user 2",
+      "Value": {"Ref": "User2AccessKey"},
+      "Export": {"Name": {"Fn::Sub": "${AWS::StackName}-User2-AccessKeyId"}}
+    },
+    "User1SecretAccessKey": {
+      "Description": "Secret Access Key for service user 1 (Store securely!)",
+      "Value": {"Fn::GetAtt": ["User1AccessKey", "SecretAccessKey"]},
+      "NoEcho": true
+    },
+    "User2SecretAccessKey": {
+      "Description": "Secret Access Key for service user 2 (Store securely!)",
+      "Value": {"Fn::GetAtt": ["User2AccessKey", "SecretAccessKey"]},
+      "NoEcho": true
+    },
+    "EC2InstanceProfileName": {
+      "Description": "Name of the EC2 instance profile",
+      "Value": {"Ref": "EC2InstanceProfile"},
+      "Export": {"Name": {"Fn::Sub": "${AWS::StackName}-EC2-InstanceProfile"}}
+    }
+  }
+}
