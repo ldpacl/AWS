@@ -79,12 +79,15 @@ Each AWS service project includes practical scenarios implemented using:
 
 ## 🤝 Contributing
 
-This repository is a living project, and contributions are welcome!
+This repository is a living project, and contributions are welcome! Please read our **[Contributing Guidelines](CONTRIBUTING.md)** for detailed information on how to contribute.
 
+**Quick Start for Contributors:**
 - **Submit new projects** showcasing different AWS services
 - **Share your approaches** and best practices  
 - **Help expand** this knowledge base for the AWS community
 - **Suggest improvements** to existing implementations
+
+Check out our [open issues](../../issues) with labels like `good first issue` and `hacktoberfest` to get started!
 
 ---
 
