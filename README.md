@@ -1,5 +1,14 @@
 # AWS Projects Repository 🚀
 
+[![Hacktoberfest](https://img.shields.io/badge/Hacktoberfest-2024-blueviolet.svg)](https://hacktoberfest.com/)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazon-aws)](https://aws.amazon.com/)
+[![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python)](https://www.python.org/)
+[![Terraform](https://img.shields.io/badge/Terraform-1.x-purple?logo=terraform)](https://www.terraform.io/)
+[![CloudFormation](https://img.shields.io/badge/CloudFormation-AWS-orange?logo=amazon-aws)](https://aws.amazon.com/cloudformation/)
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](./CONTRIBUTING.md)
+[![Code of Conduct](https://img.shields.io/badge/Code%20of%20Conduct-Contributor%20Covenant-blue.svg)](./CODE_OF_CONDUCT.md)
+
 Welcome to your comprehensive guide for real-world AWS implementations! This repository contains practical scenarios covering essential AWS services with multiple implementation approaches, from beginner to advanced concepts.
 
 > **🔗 Repository**: [AWS Projects Repository](https://github.com/ldpacl/AWS)
